@@ -1,0 +1,8 @@
+{
+	"pathParameters": {
+    	"id": "testService"
+  	},
+	"body": {
+		"input": "1\n5"
+	}
+}
