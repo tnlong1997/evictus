@@ -1,7 +1,13 @@
 import React from "react";
 import "./ProjectEulerProblem.css";
 
-import {Form, Button} from "react-bootstrap";
+import {Form, Button, ButtonToolbar, Spinner} from "react-bootstrap";
+
+import {API} from "aws-amplify";
+
+import NoTextBeatLoaderButton
+	from "../../components/NoTextBeatLoaderButton/NoTextBeatLoaderButton";
+import LoaderButton from "../../components/LoaderButton/LoaderButton";
 
 class ProjectEulerProblem extends React.Component {
 	constructor(props) {
@@ -9,12 +15,41 @@ class ProjectEulerProblem extends React.Component {
 
 		this.state = {
 			input: "",
+			output: "",
+			isRunning: false,
 		}
 	}
-	k
-	handleRunTest = event => {
+
+	runTest(input) {
+		return API.post(
+			"interactive-test",
+			`/problem/${this.props.match.params.id}/run`,
+			{
+				body: {
+					input: input,
+				}
+			}
+		);
+	}
+
+	handleRunTest = async event => {
 		event.preventDefault();
-		console.log(this.state.input);
+
+		this.setState({
+			isRunning: true,
+		});
+
+		try {
+			let response = await this.runTest(this.state.input);
+			this.setState({output: response.output});
+			console.log(response.output);
+		} catch (err) {
+			console.log(err.message);
+		}
+
+		this.setState({
+			isRunning: false,
+		});
 	}
 
 	handleInputChange = event => {
@@ -39,8 +74,18 @@ class ProjectEulerProblem extends React.Component {
 							onChange={this.handleInputChange}
 						/>
 					</Form.Group>
-					<Button type="submit" onClick={this.handleRunTest.bind(this)}>Run</Button>
+					<NoTextBeatLoaderButton
+					  block
+					  bsSize="large"
+					  // disabled={!this.validateForm()}
+					  type="submit"
+					  isLoading={this.state.isRunning}
+					  text="Execute"
+					  onClick={this.handleRunTest.bind(this)}
+					/>
 				</Form>
+				<h3> Output </h3>
+				<text>{this.state.output}</text>
 			</div>
 		)
 	};
